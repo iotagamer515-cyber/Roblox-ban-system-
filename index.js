@@ -29,6 +29,14 @@ function saveBanList(list) {
     fs.writeFileSync(BAN_FILE, JSON.stringify(list));
 }
 
+// ✅ MISSING FUNCTION FIXED HERE
+async function sendToTelegram(text) {
+    await axios.post(TG_URL, {
+        chat_id: CHAT_ID,
+        text: text
+    });
+}
+
 // MAIN API — Roblox Script calls this
 app.post("/check", async (req, res) => {
     const username = req.body.username;
@@ -39,10 +47,7 @@ app.post("/check", async (req, res) => {
     const isBanned = banList.includes(username);
 
     // Send notification to Telegram
-    await axios.post(TG_URL, {
-        chat_id: CHAT_ID,
-        text: `⚡ New Execution\n👤 Username: ${username}\n🚫 Banned: ${isBanned}`
-    });
+    await sendToTelegram(`⚡ New Execution\n👤 Username: ${username}\n🚫 Banned: ${isBanned}`);
 
     res.json({ banned: isBanned });
 });
@@ -70,30 +75,21 @@ app.post("/telegram", async (req, res) => {
             saveBanList(list);
         }
 
-        await axios.post(TG_URL, {
-            chat_id: CHAT_ID,
-            text: `✅ *${user}* banned successfully`
-        });
+        await sendToTelegram(`✅ *${user}* banned successfully`);
     }
 
     if (cmd === "/unban") {
         const list = getBanList();
         saveBanList(list.filter(u => u !== user));
 
-        await axios.post(TG_URL, {
-            chat_id: CHAT_ID,
-            text: `♻️ *${user}* unbanned successfully`
-        });
+        await sendToTelegram(`♻️ *${user}* unbanned successfully`);
     }
 
     if (cmd === "/check") {
         const list = getBanList();
         const banned = list.includes(user);
 
-        await axios.post(TG_URL, {
-            chat_id: CHAT_ID,
-            text: `🔍 Ban Status for *${user}*: ${banned}`
-        });
+        await sendToTelegram(`🔍 Ban Status for *${user}*: ${banned}`);
     }
 
     res.sendStatus(200);
@@ -104,15 +100,17 @@ app.get("/", (req, res) => {
     res.send("Ban System Running");
 });
 
-app.listen(3000, () => console.log("Server Running"));
+// GET BANNING (browser testing)
 app.get("/ban", (req, res) => {
-  const user = req.query.user;
-  sendToTelegram(`🔴 User Banned: ${user}`);
-  res.send("Ban sent to Telegram");
+    const user = req.query.user;
+    sendToTelegram(`🔴 User Banned via Web: ${user}`);
+    res.send("Ban sent to Telegram");
 });
 
 app.get("/unban", (req, res) => {
-  const user = req.query.user;
-  sendToTelegram(`🟢 User Unbanned: ${user}`);
-  res.send("Unban sent to Telegram");
+    const user = req.query.user;
+    sendToTelegram(`🟢 User Unbanned via Web: ${user}`);
+    res.send("Unban sent to Telegram");
 });
+
+app.listen(3000, () => console.log("Server Running"));
