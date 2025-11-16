@@ -105,3 +105,14 @@ app.get("/", (req, res) => {
 });
 
 app.listen(3000, () => console.log("Server Running"));
+app.get("/ban", (req, res) => {
+  const user = req.query.user;
+  sendToTelegram(`🔴 User Banned: ${user}`);
+  res.send("Ban sent to Telegram");
+});
+
+app.get("/unban", (req, res) => {
+  const user = req.query.user;
+  sendToTelegram(`🟢 User Unbanned: ${user}`);
+  res.send("Unban sent to Telegram");
+});
